@@ -36,6 +36,7 @@ type Interface interface {
 type Engine interface {
 	EvalCode(ip Interface, name string, src interface{}) error
 	FileLine(src interface{}) FileLine
+	Source(src interface{}) []byte
 }
 
 func Call(stk Stack, fn interface{}, arity int) error {
