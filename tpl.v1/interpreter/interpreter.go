@@ -15,9 +15,47 @@ import (
 var (
 	typeIntf    = reflect.TypeOf((*interface{})(nil)).Elem()
 	typeEng     = reflect.TypeOf((*interpreter.Engine)(nil)).Elem()
-	typeFline   = reflect.TypeOf((*interpreter.FileLine)(nil))
 	zeroIntfVal = reflect.Zero(typeIntf)
 )
+
+func ParseInt(lit string) (v int64, err error) {
+
+	switch lit[0] {
+	case '0':
+		if len(lit) == 1 {
+			return
+		}
+		switch lit[1] {
+		case 'x', 'X':
+			return strconv.ParseInt(lit[2:], 16, 64)
+		default:
+			return strconv.ParseInt(lit[1:], 8, 64)
+		}
+	default:
+		return strconv.ParseInt(lit, 10, 64)
+	}
+}
+
+func ParseFloat(lit string) (v float64, err error) {
+
+	switch lit[0] {
+	case '0':
+		if len(lit) == 1 {
+			return
+		}
+		switch lit[1] {
+		case 'x', 'X':
+			v1, err1 := strconv.ParseInt(lit[2:], 16, 64)
+			return float64(v1), err1
+		default:
+			v1, err1 := strconv.ParseInt(lit[1:], 8, 64)
+			if err1 == nil {
+				return float64(v1), nil
+			}
+		}
+	}
+	return strconv.ParseFloat(lit, 64)
+}
 
 func GetValue(t reflect.Type, lit string) (ret reflect.Value, err error) {
 
@@ -25,26 +63,26 @@ func GetValue(t reflect.Type, lit string) (ret reflect.Value, err error) {
 	case reflect.String:
 		return reflect.ValueOf(lit), nil
 	case reflect.Float64:
-		v, err1 := strconv.ParseFloat(lit, 64)
+		v, err1 := ParseFloat(lit)
 		if err1 != nil {
 			err = err1
 			return
 		}
 		return reflect.ValueOf(v), nil
 	case reflect.Int64:
-		v, err1 := strconv.ParseInt(lit, 10, 64)
+		v, err1 := ParseInt(lit)
 		if err1 != nil {
 			err = err1
 			return
 		}
 		return reflect.ValueOf(v), nil
 	case reflect.Int:
-		v, err1 := strconv.Atoi(lit)
+		v, err1 := ParseInt(lit)
 		if err1 != nil {
 			err = err1
 			return
 		}
-		return reflect.ValueOf(v), nil
+		return reflect.ValueOf(int(v)), nil
 	}
 	err = errors.New("unsupported type: " + t.String())
 	return
@@ -229,12 +267,6 @@ func New(ipt interpreter.Interface, options *Options) (p *Engine, err error) {
 							}
 						case typeEng:
 							args[1] = vEngine
-						case typeFline:
-							file, line := tpl.FileLine(tokens, p.Scanner)
-							args[1] = reflect.ValueOf(&interpreter.FileLine{
-								File: file,
-								Line: line,
-							})
 						default:
 							v, err := GetValue(targ1, tokens[0].Literal)
 							if err != nil {
@@ -275,6 +307,14 @@ func New(ipt interpreter.Interface, options *Options) (p *Engine, err error) {
 	p.CompileRet = &ret
 	p.Interpreter = ipt
 	return
+}
+
+func (p *Engine) Source(src interface{}) (text []byte) {
+
+	if src == nil {
+		return
+	}
+	return tpl.Source(src.([]tpl.Token), p.Scanner)
 }
 
 func (p *Engine) FileLine(src interface{}) (f interpreter.FileLine) {
