@@ -228,13 +228,16 @@ func (p *Compiler) Cl() (ret CompileRet, err error) {
 			}
 			g = Gr(tok)
 		} else {
-			g2, ok := grammars[name]
-			if ok {
+			if g2, ok := grammars[name]; ok {
 				g = Named(name, g2)
 			} else if g, ok = vars[name]; !ok {
-				v := Var(name)
-				vars[name] = v
-				g = v
+				if name == "true" {
+					g = GrTrue
+				} else {
+					v := Var(name)
+					vars[name] = v
+					g = v
+				}
 			}
 		}
 		stk = append(stk, g)
