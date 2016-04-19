@@ -630,29 +630,34 @@ func Var(name string) *GrVar {
 
 // -----------------------------------------------------------------------------
 
-type grNamed struct {
+type GrNamed struct {
 	g    Grammar
 	name string
 }
 
-func (p *grNamed) Len() int {
+func (p *GrNamed) Len() int {
 
 	return -1
 }
 
-func (p *grNamed) Match(src []Token, ctx Context) (n int, err error) {
+func (p *GrNamed) Match(src []Token, ctx Context) (n int, err error) {
 
 	return p.g.Match(src, ctx)
 }
 
-func (p *grNamed) Marshal(b []byte, t Tokener, lvlParent int) []byte {
+func (p *GrNamed) Marshal(b []byte, t Tokener, lvlParent int) []byte {
 
 	return append(b, p.name...)
 }
 
-func Named(name string, g Grammar) Grammar {
+func (p *GrNamed) Assign(name string, g Grammar) {
+	p.name = name
+	p.g = g
+}
 
-	return &grNamed{g, name}
+func Named(name string, g Grammar) *GrNamed {
+
+	return &GrNamed{g, name}
 }
 
 // -----------------------------------------------------------------------------

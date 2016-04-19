@@ -47,7 +47,7 @@ factor =
 	}
 
 	compiler := &Compiler{
-		Grammar: grammar,
+		Grammar: []byte(grammar),
 		Marker:  marker,
 	}
 	m, err := compiler.Cl()

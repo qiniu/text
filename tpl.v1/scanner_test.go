@@ -77,6 +77,14 @@ func TestScanner(t *testing.T) {
 		{196, CHAR, `'+'`},
 		{200, IDENT, `factor`},
 		{206, ';', "\n"},
+		{208, IDENT, `hello`},
+		{214, ';', "\n"},
+		{214, COMMENT, "#!/user/bin/env tpl 中文"},
+		{241, IDENT, `hello`},
+		{247, ';', "\n"},
+		{247, COMMENT, "//!/user/bin/env tpl 中文"},
+		{275, IDENT, `world`},
+		{280, NOT, ``},
 	}
 
 	const grammar = `
@@ -91,6 +99,10 @@ factor =
 	'(' expr ')' |
 	(IDENT '(' expr % ','/arity ')')/call |
 	'+' factor
+
+hello #!/user/bin/env tpl 中文
+hello //!/user/bin/env tpl 中文
+world!
 `
 
 	var s Scanner
@@ -112,7 +124,7 @@ factor =
 		i++
 	}
 	if len(expected) != i {
-		t.Fatal("len(expected) != i")
+		t.Fatalf("len(expected) != i: %d, %d\n", len(expected), i)
 	}
 
 	s.Init(file, []byte(grammar), nil, 0)
@@ -125,16 +137,39 @@ factor =
 		if expected[i].Kind == ';' {
 			i++
 		}
+		if expected[i].Kind == COMMENT {
+			i++
+		}
 		expect := Token{expected[i].Kind, expected[i].Pos, expected[i].Literal}
 		if token != expect {
 			t.Fatal("Scan failed:", token.Pos, s.Ttol(token.Kind), token.Literal, expect)
 		}
 		i++
 	}
-	if expected[i].Kind == ';' {
+	if i < len(expected) && expected[i].Kind == ';' {
 		i++
 	}
 	if len(expected) != i {
-		t.Fatal("len(expected) != i")
+		t.Fatalf("len(expected) != i: %d, %d\n", len(expected), i)
+	}
+
+	s.Init(file, []byte(grammar), nil, InsertSemis)
+	i = 0
+	for {
+		token := s.Scan()
+		if token.Kind == EOF {
+			break
+		}
+		if expected[i].Kind == COMMENT {
+			i++
+		}
+		expect := Token{expected[i].Kind, expected[i].Pos, expected[i].Literal}
+		if token != expect {
+			t.Fatal("Scan failed:", token.Pos, s.Ttol(token.Kind), token.Literal, expect)
+		}
+		i++
+	}
+	if len(expected) != i {
+		t.Fatalf("len(expected) != i: %d, %d\n", len(expected), i)
 	}
 }
