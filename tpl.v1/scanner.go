@@ -10,13 +10,15 @@ import (
 	"unicode/utf8"
 )
 
+// A Token is a lexical unit returned by Scan.
+//
 type Token struct {
 	Kind    uint
 	Pos     token.Pos
 	Literal string
 }
 
-// An ErrorHandler may be provided to Scanner.Init. If a syntax error is
+// An ScanErrorHandler may be provided to Scanner.Init. If a syntax error is
 // encountered and a handler was installed, the handler is called with a
 // position and an error message. The position points to the beginning of
 // the offending token.
@@ -83,14 +85,17 @@ func (s *Scanner) next() {
 	}
 }
 
-// A mode value is a set of flags (or 0).
+// A ScanMode value is a set of flags (or 0).
 // They control scanner behavior.
 //
 type ScanMode uint
 
 const (
-	ScanComments ScanMode = 1 << iota // return comments as COMMENT tokens
-	InsertSemis                       // automatically insert semicolons
+	// ScanComments means returning comments as COMMENT tokens
+	ScanComments ScanMode = 1 << iota
+
+	// InsertSemis means automatically insert semicolons
+	InsertSemis
 )
 
 // Init prepares the scanner s to tokenize the text src by setting the
@@ -453,6 +458,21 @@ func (s *Scanner) scanRune() string {
 	return string(s.src[offs:s.offset])
 }
 
+func (s *Scanner) scanSharpComment() string {
+	// '#' opening already consumed
+	offs := s.offset - 1
+
+	for {
+		ch := s.ch
+		if ch == '\n' || ch < 0 {
+			break
+		}
+		s.next()
+	}
+
+	return string(s.src[offs:s.offset])
+}
+
 func (s *Scanner) scanString() string {
 	// '"' opening already consumed
 	offs := s.offset - 1
@@ -707,6 +727,21 @@ scanAgain:
 			} else {
 				t.Kind = s.switch2(QUO, QUO_ASSIGN)
 			}
+		case '#':
+			if s.insertSemi {
+				s.ch = '#'
+				s.offset = s.file.Offset(t.Pos)
+				s.rdOffset = s.offset + 1
+				s.insertSemi = false
+				t.Kind, t.Literal = SEMICOLON, "\n"
+				return
+			}
+			comment := s.scanSharpComment()
+			if s.mode&ScanComments == 0 { // skip comment
+				goto scanAgain
+			}
+			t.Kind = COMMENT
+			t.Literal = comment
 		case '%':
 			t.Kind = s.switch2(REM, REM_ASSIGN)
 		case '^':
@@ -756,6 +791,8 @@ scanAgain:
 	return
 }
 
+// Source returns the scanning source.
+//
 func (s *Scanner) Source() TokenSource {
 
 	return TokenSource{s.file, s.src}

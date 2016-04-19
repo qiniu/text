@@ -10,7 +10,7 @@ import (
 )
 
 // -----------------------------------------------------------------------------
-
+//go:generate tplgen -i -g Grammar -f static_interpreter.go
 const Grammar = `
 
 term = factor *('*' factor/mul | '/' factor/quo | '%' factor/mod)
