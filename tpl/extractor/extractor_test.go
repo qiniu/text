@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"qiniupkg.com/text/tpl.v1/extractor"
+	"github.com/qiniu/text/tpl/extractor"
 )
 
 // -----------------------------------------------------------------------------

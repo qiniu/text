@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
-	"qiniupkg.com/text/tpl.v1/interpreter"
-	"qiniupkg.com/text/tpl.v1/number"
+	"github.com/qiniu/text/tpl/interpreter"
+	"github.com/qiniu/text/tpl/number"
 )
 
 var (

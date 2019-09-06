@@ -6,7 +6,7 @@ import (
 	"math/big"
 	"reflect"
 
-	"qiniupkg.com/text/tpl.v1/interpreter.util"
+	"github.com/qiniu/text/tpl/interpreter.util"
 )
 
 // -----------------------------------------------------------------------------

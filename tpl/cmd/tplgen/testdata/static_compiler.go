@@ -1,7 +1,7 @@
 package main
 
 import (
-	"qiniupkg.com/text/tpl.v1"
+	"github.com/qiniu/text/tpl"
 )
 
 type StaticCompiler struct {

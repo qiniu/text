@@ -1,6 +1,5 @@
 package text
 
 import (
-	_ "qiniupkg.com/text/tpl.v1"
+	_ "github.com/qiniu/text/tpl"
 )
-
