@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"strconv"
 
-	"qiniupkg.com/text/tpl.v1"
-	"qiniupkg.com/text/tpl.v1/interpreter.util"
+	"github.com/qiniu/text/tpl"
+	"github.com/qiniu/text/tpl/interpreter.util"
 )
 
 // -----------------------------------------------------------------------------

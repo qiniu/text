@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"qiniupkg.com/text/tpl.v1"
+	"github.com/qiniu/text/tpl"
 )
 
 // GenStaticCode 生成StaticCompiler的Cl() method.

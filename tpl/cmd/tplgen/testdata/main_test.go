@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"qiniupkg.com/text/tpl.v1"
+	"github.com/qiniu/text/tpl"
 )
 
 //go:generate tplgen -f static_compiler.go -g grammar
