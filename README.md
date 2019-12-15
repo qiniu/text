@@ -13,4 +13,5 @@ go get github.com/qiniu/text
 
 # 使用文档
 
-* [github.com/qiniu/text/tpl](http://godoc.org/github.com/qiniu/text/tpl)
+* [TPL Doc](https://github.com/qiniu/text/tree/master/tpl)
+* [godoc.org/github.com/qiniu/text/tpl](http://godoc.org/github.com/qiniu/text/tpl)
