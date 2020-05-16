@@ -3,10 +3,10 @@ tpl
 
 TPL 全称是 `Text Processing Language`（文本处理语言）。整个库的组成如下：
 
-* `qiniupkg.com/text/tpl`: 基础的 TPL 文本处理引擎，外加一个 TPL 文法编译器。
-* `qiniupkg.com/text/tpl/interpreter`: 在 TPL 基础上实现的解释器引擎。典型使用场景是实现一个计算器（Calculator）、解释型的语言执行器（直接产生执行结果）或翻译器（翻译成另一种语言，比如字节码）。
-* `qiniupkg.com/text/tpl/{number, cmplx, rat}`: 在解释器框架基础上实现的3个计算器，分别对应三种类型的运算：`float64`（浮点数）、`complex128`（复数）、`*big.Rat`（有理数）。
-* `qiniupkg.com/text/tpl/exmples`: TPL 库的一些样例。
+* `github.com/qiniu/text/tpl`: 基础的 TPL 文本处理引擎，外加一个 TPL 文法编译器。
+* `github.com/qiniu/text/tpl/interpreter`: 在 TPL 基础上实现的解释器引擎。典型使用场景是实现一个计算器（Calculator）、解释型的语言执行器（直接产生执行结果）或翻译器（翻译成另一种语言，比如字节码）。
+* `github.com/qiniu/text/tpl/{number, cmplx, rat}`: 在解释器框架基础上实现的3个计算器，分别对应三种类型的运算：`float64`（浮点数）、`complex128`（复数）、`*big.Rat`（有理数）。
+* `github.com/qiniu/text/tpl/exmples`: TPL 库的一些样例。
 
 
 ## 文本处理引擎
@@ -92,7 +92,7 @@ Maker 概念上并不是动作。但是你可以在 Maker 回调中生成相应�
 
 ```go
 import (
-	"qiniupkg.com/text/tpl"
+	"github.com/qiniu/text/tpl"
 )
 
 // 定义要处理的文本内容对应的TPL文法
@@ -196,14 +196,14 @@ _tr 是一个内建的标记(mark)。它是一个调试用的标记，它在规�
 
 使用 interpreter 的范式如下：
 
-第一步，先实作一个 interpreter 包（假设叫 foo，我们的样例 qiniupkg.com/text/tpl/{number, cmplx, rat} 都属于这一类）：
+第一步，先实作一个 interpreter 包（假设叫 foo，我们的样例 github.com/qiniu/text/tpl/{number, cmplx, rat} 都属于这一类）：
 
 ```go
 package foo
 
 import (
 	"reflect"
-	"qiniupkg.com/text/tpl/interpreter.util"
+	"github.com/qiniu/text/tpl/interpreter.util"
 )
 
 // 定义要处理的文本内容对应的TPL文法
@@ -263,7 +263,7 @@ var Fntable = map[string]interface{}{
 import (
 	"foo"
 
-	"qiniupkg.com/text/tpl/interpreter"
+	"github.com/qiniu/text/tpl/interpreter"
 )
 
 func eval(text []byte, fname string) (..., err error) {

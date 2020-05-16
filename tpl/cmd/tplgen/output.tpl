@@ -8,9 +8,9 @@ import (
 	"strconv"
 	{{ end }}
 
-	"qiniupkg.com/text/tpl.v1"
+	"github.com/qiniu/text/tpl.v1"
 	{{ if .genInterpreter}}
-	"qiniupkg.com/text/tpl.v1/interpreter.util"
+	"github.com/qiniu/text/tpl.v1/interpreter.util"
 	{{ end }}
 )
 {{if .genInterpreter}}
