@@ -799,6 +799,15 @@ scanAgain:
 // Source returns the scanning source.
 //
 func (s *Scanner) Source() TokenSource {
-
 	return TokenSource{s.file, s.src}
+}
+
+// Ttol - token => literal
+func (s *Scanner) Ttol(tok uint) string {
+	return Token2Lit(tok)
+}
+
+// Ltot - literal => token
+func (s *Scanner) Ltot(lit string) (tok uint) {
+	return Lit2Token(lit)
 }

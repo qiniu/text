@@ -175,8 +175,8 @@ func TokenLen(tok uint) int {
 
 // -----------------------------------------------------------------------------
 
-// Ttol - token => literal
-func (p *Scanner) Ttol(tok uint) (s string) {
+// Token2Lit - token => literal
+func Token2Lit(tok uint) (s string) {
 	if tok < uint(len(tokens)) {
 		s = tokens[tok]
 	} else {
@@ -196,8 +196,8 @@ func init() {
 	}
 }
 
-// Ltot - literal => token
-func (p *Scanner) Ltot(lit string) (tok uint) {
+// Lit2Token - literal => token
+func Lit2Token(lit string) (tok uint) {
 	return rtokens[lit]
 }
 

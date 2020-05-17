@@ -138,6 +138,11 @@ factor =
 	if text != "1.2 .3 sin/1 2 '*' '+' 3 cos/1 5 6 pow/2 7 max/4" {
 		t.Fatal("MatchExactly failed:", text)
 	}
+
+	for name, gr := range m.Grammars {
+		code := tpl.Code(gr, m.Scanner)
+		fmt.Println("name:", name, "=", code)
+	}
 }
 
 // -----------------------------------------------------------------------------
