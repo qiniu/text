@@ -18,6 +18,11 @@ type Token struct {
 	Literal string
 }
 
+// End returns end position of this token.
+func (p *Token) End() token.Pos {
+	return p.Pos + token.Pos(len(p.Literal)+TokenLen(p.Kind))
+}
+
 // An ScanErrorHandler may be provided to Scanner.Init. If a syntax error is
 // encountered and a handler was installed, the handler is called with a
 // position and an error message. The position points to the beginning of

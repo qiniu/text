@@ -7,27 +7,29 @@ import (
 )
 
 var (
+	// ErrNoDoc error
 	ErrNoDoc = errors.New("no doc")
 )
 
 // -----------------------------------------------------------------------------
 
+// AutoKwScanner represents an auto-keyword discovering scanner.
 type AutoKwScanner struct {
 	Scanner
 	tokens   []string
 	keywords map[string]uint
 }
 
+// Init initializes this scanner.
 func (p *AutoKwScanner) Init(file *token.File, src []byte, err ScanErrorHandler, mode ScanMode) {
-
 	p.Scanner.Init(file, src, err, mode)
 	if p.keywords == nil {
 		p.keywords = make(map[string]uint)
 	}
 }
 
+// Scan scans next token.
 func (p *AutoKwScanner) Scan() (t Token) {
-
 	t = p.Scanner.Scan()
 	if t.Kind == IDENT {
 		if tok, ok := p.keywords[t.Literal]; ok {
@@ -37,16 +39,16 @@ func (p *AutoKwScanner) Scan() (t Token) {
 	return
 }
 
+// Ttol - convert token to literal.
 func (p *AutoKwScanner) Ttol(tok uint) (lit string) {
-
 	if tok >= USER_TOKEN_BEGIN {
 		return p.tokens[tok-USER_TOKEN_BEGIN]
 	}
 	return p.Scanner.Ttol(tok)
 }
 
+// Ltot - convert literal to token.
 func (p *AutoKwScanner) Ltot(lit string) (tok uint) { // "keyword"
-
 	if tok = p.Scanner.Ltot(lit); tok != ILLEGAL {
 		return
 	}
@@ -64,14 +66,15 @@ func (p *AutoKwScanner) Ltot(lit string) (tok uint) { // "keyword"
 
 // -----------------------------------------------------------------------------
 
+// CompileRet represents a compiling result.
 type CompileRet struct {
 	*Matcher
 	Grammars map[string]Grammar
 	Vars     map[string]*GrVar
 }
 
+// EvalSub evals a sub routine specified by src.
 func (p CompileRet) EvalSub(name string, src interface{}) error {
-
 	g, ok := p.Grammars[name]
 	if !ok {
 		return ErrNoGrammar
@@ -113,6 +116,7 @@ func nilMarker(g Grammar, mark string) Grammar {
 	return g
 }
 
+// Compiler represents a compiler.
 type Compiler struct {
 	Grammar  []byte
 	Marker   func(g Grammar, mark string) Grammar
@@ -122,29 +126,31 @@ type Compiler struct {
 }
 
 /*
-	term = factor *(
-		'%' factor/list |
-		"%=" factor/list0 |
-		'/' IDENT/mark
-		)
+Cl compiles tpl code into grammar.
 
-	expr = +(term | '!'/nil)/and
+term = factor *(
+	'%' factor/list |
+	"%=" factor/list0 |
+	'/' IDENT/mark
+	)
 
-	grammar = expr % '|'/or
+expr = +(term | '!'/nil)/and
 
-	doc = +((IDENT '=' grammar ';')/assign)
+grammar = expr % '|'/or
 
-	factor =
-		IDENT/ident |
-		CHAR/gr |
-		STRING/gr |
-		INT/true |
-		'*' factor/repeat0 |
-		'+' factor/repeat1 |
-		'?' factor/repeat01 |
-		'~' factor/not |
-		'@' factor/peek |
-		'(' grammar ')'
+doc = +((IDENT '=' grammar ';')/assign)
+
+factor =
+	IDENT/ident |
+	CHAR/gr |
+	STRING/gr |
+	INT/true |
+	'*' factor/repeat0 |
+	'+' factor/repeat1 |
+	'?' factor/repeat01 |
+	'~' factor/not |
+	'@' factor/peek |
+	'(' grammar ')'
 */
 func (p *Compiler) Cl() (ret CompileRet, err error) {
 

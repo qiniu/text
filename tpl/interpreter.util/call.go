@@ -3,11 +3,14 @@ package interpreter
 import (
 	"errors"
 	"fmt"
+	"go/token"
 	"reflect"
 )
 
 var (
-	ErrStackDamaged       = errors.New("unexpected: stack damaged")
+	// ErrStackDamaged error
+	ErrStackDamaged = errors.New("unexpected: stack damaged")
+	// ErrArgumentsNotEnough error
 	ErrArgumentsNotEnough = errors.New("argument not enough")
 )
 
@@ -17,30 +20,41 @@ var (
 
 // -----------------------------------------------------------------------------
 
+// Context represents the context of an interpreter.
+type Context struct {
+	Src interface{} // []tpl.Token
+	Pos token.Pos
+	End token.Pos
+}
+
+// FileLine represents file name and line number.
 type FileLine struct {
 	File string
 	Line int
 }
 
+// Stack represents a stack.
 type Stack interface {
 	PopArgs(arity int) (args []reflect.Value, ok bool)
 	PushRet(ret []reflect.Value) error
 }
 
+// Interface represents the interface required by an interpreter.
 type Interface interface {
 	Grammar() string
 	Fntable() map[string]interface{}
 	Stack() Stack
 }
 
+// Engine represents an interpreter.
 type Engine interface {
 	EvalCode(ip Interface, name string, src interface{}) error
 	FileLine(src interface{}) FileLine
 	Source(src interface{}) []byte
 }
 
+// Call calls a fn.
 func Call(stk Stack, fn interface{}, arity int) error {
-
 	tfn := reflect.TypeOf(fn)
 	n := tfn.NumIn()
 
@@ -56,8 +70,8 @@ func Call(stk Stack, fn interface{}, arity int) error {
 	return DoCall(stk, fn, arity, n, isVariadic)
 }
 
+// DoCall calls a fn.
 func DoCall(stk Stack, fn interface{}, arity, n int, isVariadic bool) error {
-
 	tfn := reflect.TypeOf(fn)
 
 	var ok bool
@@ -86,8 +100,8 @@ func DoCall(stk Stack, fn interface{}, arity, n int, isVariadic bool) error {
 	return stk.PushRet(out)
 }
 
+// VCall calls a fn specified in stack.
 func VCall(stk Stack, arity int) error {
-
 	in, ok := stk.PopArgs(arity + 1)
 	if !ok {
 		return ErrStackDamaged
@@ -130,7 +144,6 @@ func VCall(stk Stack, arity int) error {
 }
 
 func validateType(in *reflect.Value, t reflect.Type) error {
-
 	switch t.Kind() {
 	case reflect.Interface, reflect.Ptr:
 		if !in.IsValid() {

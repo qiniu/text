@@ -6,11 +6,13 @@ import (
 )
 
 var (
+	// ErrNoGrammar error
 	ErrNoGrammar = errors.New("no grammar")
 )
 
 // -----------------------------------------------------------------------------
 
+// Matcher represents a compiled grammar.
 type Matcher struct {
 	Grammar  Grammar
 	Scanner  Tokener
@@ -18,23 +20,23 @@ type Matcher struct {
 	Init     func()
 }
 
+// TokenizeError represents a tokenize error.
 type TokenizeError struct {
 	Pos token.Position
 	Msg string
 }
 
 func (p *TokenizeError) Error() string {
-
 	return p.Msg
 }
 
+// Code returns tpl code of this grammar.
 func (p *Matcher) Code() string {
-
 	return Code(p.Grammar, p.requireScanner())
 }
 
+// Tokenize tokenizes src.
 func (p *Matcher) Tokenize(src []byte, fname string) (tokens []Token, err error) {
-
 	fset := token.NewFileSet()
 	file := fset.AddFile(fname, -1, len(src))
 
@@ -61,7 +63,6 @@ func (p *Matcher) Tokenize(src []byte, fname string) (tokens []Token, err error)
 }
 
 func (p *Matcher) requireScanner() Tokener {
-
 	s := p.Scanner
 	if s == nil {
 		s = new(Scanner)
@@ -70,13 +71,13 @@ func (p *Matcher) requireScanner() Tokener {
 	return s
 }
 
+// Tokener returns the scanner.
 func (p *Matcher) Tokener() Tokener {
-
 	return p.requireScanner()
 }
 
+// Match matches src.
 func (p *Matcher) Match(src []byte, fname string) (next []Token, err error) {
-
 	g := p.Grammar
 	if g == nil {
 		return nil, ErrNoGrammar
@@ -97,8 +98,8 @@ func (p *Matcher) Match(src []byte, fname string) (next []Token, err error) {
 	return tokens[n:], nil
 }
 
+// MatchExactly matches src exactly.
 func (p *Matcher) MatchExactly(src []byte, fname string) (err error) {
-
 	next, err := p.Match(src, fname)
 	if err != nil {
 		return
@@ -110,8 +111,8 @@ func (p *Matcher) MatchExactly(src []byte, fname string) (err error) {
 	return
 }
 
+// Eval matches src exactly.
 func (p *Matcher) Eval(src string) (err error) {
-
 	return p.MatchExactly([]byte(src), "")
 }
 

@@ -12,7 +12,6 @@ type tokenTest struct {
 }
 
 func TestScanner(t *testing.T) {
-
 	var expected = []tokenTest{
 		{3, IDENT, `term`},
 		{8, '=', ``},
@@ -84,7 +83,7 @@ func TestScanner(t *testing.T) {
 		{247, ';', "\n"},
 		{247, COMMENT, "//!/user/bin/env tpl 中文"},
 		{275, IDENT, `world`},
-		{280, NOT, ``},
+		{281, NE, ``},
 	}
 
 	const grammar = `
@@ -102,9 +101,8 @@ factor =
 
 hello #!/user/bin/env tpl 中文
 hello //!/user/bin/env tpl 中文
-world!
+world !=
 `
-
 	var s Scanner
 
 	fset := token.NewFileSet()
@@ -143,6 +141,11 @@ world!
 		expect := Token{expected[i].Kind, expected[i].Pos, expected[i].Literal}
 		if token != expect {
 			t.Fatal("Scan failed:", token.Pos, s.Ttol(token.Kind), token.Literal, expect)
+		}
+		switch TokenLen(token.Kind) {
+		case 0, 1, 2, 3:
+		default:
+			t.Fatal("TokenLen failed:", TokenLen(token.Kind))
 		}
 		i++
 	}

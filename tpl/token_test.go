@@ -5,7 +5,6 @@ import (
 )
 
 func TestTokens(tt *testing.T) {
-
 	for i, t := range tokens {
 		if t == "" {
 			continue
@@ -32,7 +31,6 @@ func TestTokens(tt *testing.T) {
 }
 
 func TestToken(t *testing.T) {
-
 	if operator_beg != 0x80 {
 		t.Fatal("operator_beg != 0x80", int(operator_beg))
 	}

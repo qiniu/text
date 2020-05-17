@@ -18,8 +18,8 @@ var (
 	zeroIntfVal = reflect.Zero(typeIntf)
 )
 
+// ParseInt parses an integer value.
 func ParseInt(lit string) (v int64, err error) {
-
 	switch lit[0] {
 	case '0':
 		if len(lit) == 1 {
@@ -36,8 +36,8 @@ func ParseInt(lit string) (v int64, err error) {
 	}
 }
 
+// ParseFloat parses a float value.
 func ParseFloat(lit string) (v float64, err error) {
-
 	switch lit[0] {
 	case '0':
 		if len(lit) == 1 {
@@ -57,8 +57,8 @@ func ParseFloat(lit string) (v float64, err error) {
 	return strconv.ParseFloat(lit, 64)
 }
 
+// GetValue parses a literal.
 func GetValue(t reflect.Type, lit string) (ret reflect.Value, err error) {
-
 	switch t.Kind() {
 	case reflect.String:
 		return reflect.ValueOf(lit), nil
@@ -90,6 +90,7 @@ func GetValue(t reflect.Type, lit string) (ret reflect.Value, err error) {
 
 // -----------------------------------------------------------------------------
 
+// RuntimeError represents a runtime error.
 type RuntimeError struct {
 	Grammar tpl.Grammar
 	Ctx     tpl.Context
@@ -111,11 +112,13 @@ func (p *RuntimeError) Error() string {
 
 // -----------------------------------------------------------------------------
 
+// Options is options of an interpreter.
 type Options struct {
 	Scanner  tpl.Tokener
 	ScanMode tpl.ScanMode
 }
 
+// Engine represents an interpreter.
 type Engine struct {
 	*tpl.CompileRet
 	Interpreter interpreter.Interface
@@ -134,11 +137,12 @@ var (
 )
 
 var (
+	// InsertSemis options
 	InsertSemis = &Options{ScanMode: tpl.InsertSemis}
 )
 
+// New creates an interpreter.
 func New(ipt interpreter.Interface, options *Options) (p *Engine, err error) {
-
 	if options == nil {
 		options = &optionsDef
 	}
@@ -195,7 +199,7 @@ func New(ipt interpreter.Interface, options *Options) (p *Engine, err error) {
 			kindRecvr = 2
 		}
 		if kindRecvr > 0 {
-			if n > 2 {
+			if n > 3 {
 				panic("invalid function (too many params): " + mark)
 			}
 			if nout := tfn.NumOut(); nout > 0 {
@@ -250,7 +254,7 @@ func New(ipt interpreter.Interface, options *Options) (p *Engine, err error) {
 				} else {
 					args[0] = reflect.ValueOf(p.Interpreter)
 				}
-				if n == 2 {
+				if n >= 2 {
 					targ1 := tfn.In(1)
 					if isLen {
 						if targ1 != typeInt {
@@ -275,6 +279,14 @@ func New(ipt interpreter.Interface, options *Options) (p *Engine, err error) {
 							args[1] = v
 						}
 					}
+				}
+				if n == 3 {
+					ctx := &interpreter.Context{Src: tokens}
+					if len(tokens) > 0 {
+						ctx.Pos = tokens[0].Pos
+						ctx.End = tokens[len(tokens)-1].End()
+					}
+					args[2] = reflect.ValueOf(ctx)
 				}
 				ret := reflect.ValueOf(fn).Call(args)
 				if len(ret) > 0 {
@@ -309,16 +321,16 @@ func New(ipt interpreter.Interface, options *Options) (p *Engine, err error) {
 	return
 }
 
+// Source returns the source text of src.
 func (p *Engine) Source(src interface{}) (text []byte) {
-
 	if src == nil {
 		return
 	}
 	return tpl.Source(src.([]tpl.Token), p.Scanner)
 }
 
+// FileLine returns file name and line number of src.
 func (p *Engine) FileLine(src interface{}) (f interpreter.FileLine) {
-
 	if src == nil {
 		return
 	}
@@ -326,8 +338,8 @@ func (p *Engine) FileLine(src interface{}) (f interpreter.FileLine) {
 	return
 }
 
+// EvalCode evals src code.
 func (p *Engine) EvalCode(fn interpreter.Interface, name string, src interface{}) error {
-
 	old := p.Interpreter
 	mute := p.mute
 	p.Interpreter = fn

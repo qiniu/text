@@ -162,12 +162,21 @@ var tokens = [...]string{
 	ELLIPSIS: "\"...\"",
 }
 
+// TokenLen returns:
+// 1) len of is token literal, if token is an operator.
+// 2) 0 for else.
+//
+func TokenLen(tok uint) int {
+	if tok > ' ' && tok <= uint(len(tokens)) {
+		return len(tokens[tok]) - 2
+	}
+	return 0
+}
+
 // -----------------------------------------------------------------------------
 
-// token => literal
-//
+// Ttol - token => literal
 func (p *Scanner) Ttol(tok uint) (s string) {
-
 	if tok < uint(len(tokens)) {
 		s = tokens[tok]
 	} else {
@@ -179,7 +188,6 @@ func (p *Scanner) Ttol(tok uint) (s string) {
 var rtokens map[string]uint
 
 func init() {
-
 	rtokens = make(map[string]uint, 64)
 	for i, s := range tokens {
 		if s != "" {
@@ -188,10 +196,8 @@ func init() {
 	}
 }
 
-// literal => token
-//
+// Ltot - literal => token
 func (p *Scanner) Ltot(lit string) (tok uint) {
-
 	return rtokens[lit]
 }
 

@@ -9,7 +9,6 @@ import (
 // -----------------------------------------------------------------------------
 
 func TestMatch(t *testing.T) {
-
 	/*	term = factor *('*' factor/mul | '/' factor/div)
 
 		expr = term *('+' term/add | '-' term/sub)

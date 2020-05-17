@@ -8,8 +8,10 @@ import (
 )
 
 var (
+	// ErrVarNotAssigned error
 	ErrVarNotAssigned = errors.New("variable is not assigned")
-	ErrVarAssigned    = errors.New("variable is already assigned")
+	// ErrVarAssigned error
+	ErrVarAssigned = errors.New("variable is already assigned")
 )
 
 /* -----------------------------------------------------------------------------
@@ -31,11 +33,13 @@ const (
 	lvlPeek = lvlRepeat
 )
 
+// TokenSource represents the source file.
 type TokenSource struct {
 	File *token.File
 	Src  []byte
 }
 
+// Tokener represents the scanner.
 type Tokener interface {
 	Scan() (t Token)
 	Source() (src TokenSource)
@@ -44,18 +48,20 @@ type Tokener interface {
 	Init(file *token.File, src []byte, err ScanErrorHandler, mode ScanMode)
 }
 
+// Context represents the matching context.
 type Context interface {
 	Tokener() Tokener
 }
 
+// Grammar represents a syntax unit.
 type Grammar interface {
 	Match(src []Token, ctx Context) (n int, err error)
 	Marshal(b []byte, t Tokener, lvlParent int) []byte
 	Len() int // 如果这个Grammar不是array型的，返回-1
 }
 
+// Source returns the source code of tokens.
 func Source(doc []Token, t Tokener) (text []byte) {
-
 	n := len(doc)
 	if n == 0 {
 		return nil
@@ -67,8 +73,8 @@ func Source(doc []Token, t Tokener) (text []byte) {
 	return s.Src[start:end]
 }
 
+// FileLine returns the file name and line number of tokens.
 func FileLine(doc []Token, t Tokener) (string, int) {
-
 	n := len(doc)
 	if n == 0 {
 		return "", 0
@@ -77,13 +83,13 @@ func FileLine(doc []Token, t Tokener) (string, int) {
 	return f.Name(), f.Line(doc[0].Pos)
 }
 
+// Code returns the marshal result of a grammar unit.
 func Code(g Grammar, t Tokener) string {
-
 	return string(g.Marshal(nil, t, 0))
 }
 
+// Clone clones grammars.
 func Clone(gs []Grammar) []Grammar {
-
 	dest := make([]Grammar, len(gs))
 	for i, g := range gs {
 		dest[i] = g
@@ -93,6 +99,7 @@ func Clone(gs []Grammar) []Grammar {
 
 // -----------------------------------------------------------------------------
 
+// MatchError represents a matching error.
 type MatchError struct {
 	Grammar Grammar
 	Ctx     Context
@@ -115,7 +122,6 @@ func (p *MatchError) Error() string {
 }
 
 func calcErrorInfo(doc []Token, idxErr int, t Tokener) (line int, text []byte) {
-
 	n := len(doc)
 	if n == 0 {
 		return
@@ -135,7 +141,6 @@ func calcErrorInfo(doc []Token, idxErr int, t Tokener) (line int, text []byte) {
 }
 
 func nextLines(src []byte, n int) []byte {
-
 	from := 0
 	for n > 0 {
 		pos := bytes.IndexByte(src[from:], '\n')
@@ -155,7 +160,6 @@ type grToken struct {
 }
 
 func (p grToken) Match(src []Token, ctx Context) (n int, err error) {
-
 	if len(src) > 0 {
 		kind := src[0].Kind
 		if kind == p.Kind || (kind == INT && p.Kind == FLOAT) {
@@ -166,17 +170,15 @@ func (p grToken) Match(src []Token, ctx Context) (n int, err error) {
 }
 
 func (p grToken) Marshal(b []byte, t Tokener, lvlParent int) []byte {
-
 	return append(b, t.Ttol(p.Kind)...)
 }
 
 func (p grToken) Len() int {
-
 	return -1
 }
 
+// Gr returns a grammar that matches a token.
 func Gr(tok uint) Grammar {
-
 	return grToken{tok}
 }
 
@@ -186,20 +188,18 @@ type grTrue struct {
 }
 
 func (p grTrue) Match(src []Token, ctx Context) (n int, err error) {
-
 	return 0, nil
 }
 
 func (p grTrue) Marshal(b []byte, t Tokener, lvlParent int) []byte {
-
 	return append(b, '1')
 }
 
 func (p grTrue) Len() int {
-
 	return -1
 }
 
+// GrTrue is a grammar that always matching successfully.
 var GrTrue Grammar = grTrue{}
 
 // -----------------------------------------------------------------------------
@@ -209,7 +209,6 @@ type grPeek struct {
 }
 
 func (p *grPeek) Match(src []Token, ctx Context) (n int, err error) {
-
 	if _, err1 := p.g.Match(src, ctx); err1 == nil {
 		return 0, nil
 	}
@@ -217,18 +216,16 @@ func (p *grPeek) Match(src []Token, ctx Context) (n int, err error) {
 }
 
 func (p *grPeek) Marshal(b []byte, t Tokener, lvlParent int) []byte {
-
 	b = append(b, '@')
 	return p.g.Marshal(b, t, lvlPeek)
 }
 
 func (p *grPeek) Len() int {
-
 	return -1
 }
 
+// Peek returns a grammar that peeks next tokens matching a grammar or not.
 func Peek(g Grammar) Grammar {
-
 	return &grPeek{g}
 }
 
@@ -239,7 +236,6 @@ type grNot struct {
 }
 
 func (p *grNot) Match(src []Token, ctx Context) (n int, err error) {
-
 	if _, err1 := p.g.Match(src, ctx); err1 != nil {
 		return 0, nil
 	}
@@ -247,18 +243,16 @@ func (p *grNot) Match(src []Token, ctx Context) (n int, err error) {
 }
 
 func (p *grNot) Marshal(b []byte, t Tokener, lvlParent int) []byte {
-
 	b = append(b, '~')
 	return p.g.Marshal(b, t, lvlNot)
 }
 
 func (p *grNot) Len() int {
-
 	return -1
 }
 
+// Not returns a grammar that peeks next tokens unmatching a grammar or not.
 func Not(g Grammar) Grammar {
-
 	return &grNot{g}
 }
 
@@ -269,7 +263,6 @@ type grEOF struct {
 }
 
 func (p grEOF) Match(src []Token, ctx Context) (n int, err error) {
-
 	if len(src) != 0 {
 		err = &MatchError{p, ctx, src, nil, 0}
 	}
@@ -277,15 +270,14 @@ func (p grEOF) Match(src []Token, ctx Context) (n int, err error) {
 }
 
 func (p grEOF) Marshal(b []byte, t Tokener, lvlParent int) []byte {
-
 	return append(b, 'E', 'O', 'F')
 }
 
 func (p grEOF) Len() int {
-
 	return -1
 }
 
+// GrEOF is a grammar that matching eof.
 var GrEOF Grammar = grEOF{}
 
 // -----------------------------------------------------------------------------
@@ -296,7 +288,6 @@ type grAnd struct {
 }
 
 func (p *grAnd) Match(src []Token, ctx Context) (n int, err error) {
-
 	failFast := false
 	for _, g := range p.gs {
 		if g == nil {
@@ -317,7 +308,6 @@ func (p *grAnd) Match(src []Token, ctx Context) (n int, err error) {
 }
 
 func (p *grAnd) Marshal(b []byte, t Tokener, lvlParent int) []byte {
-
 	if lvlParent > lvlAnd {
 		b = append(b, '(')
 	}
@@ -337,12 +327,11 @@ func (p *grAnd) Marshal(b []byte, t Tokener, lvlParent int) []byte {
 }
 
 func (p *grAnd) Len() int {
-
 	return len(p.gs)
 }
 
+// And represents G1 G2 ... Gn
 func And(gs ...Grammar) Grammar {
-
 	return &grAnd{gs}
 }
 
@@ -354,7 +343,6 @@ type grOr struct {
 }
 
 func (p *grOr) Match(src []Token, ctx Context) (n int, err error) {
-
 	var nMax int
 	var errMax error
 	var multiErr = true
@@ -378,7 +366,6 @@ func (p *grOr) Match(src []Token, ctx Context) (n int, err error) {
 }
 
 func (p *grOr) Marshal(b []byte, t Tokener, lvlParent int) []byte {
-
 	if lvlParent > lvlOr {
 		b = append(b, '(')
 	}
@@ -395,12 +382,11 @@ func (p *grOr) Marshal(b []byte, t Tokener, lvlParent int) []byte {
 }
 
 func (p *grOr) Len() int {
-
 	return len(p.gs)
 }
 
+// Or represents G1 | G2 | ... | Gn
 func Or(gs ...Grammar) Grammar {
-
 	return &grOr{gs}
 }
 
@@ -413,12 +399,10 @@ type grRepeat0 struct {
 }
 
 func (p *grRepeat0) Len() int {
-
 	return p.len
 }
 
 func (p *grRepeat0) Match(src []Token, ctx Context) (n int, err error) {
-
 	g := p.g
 	len := 0
 	for {
@@ -434,13 +418,12 @@ func (p *grRepeat0) Match(src []Token, ctx Context) (n int, err error) {
 }
 
 func (p *grRepeat0) Marshal(b []byte, t Tokener, lvlParent int) []byte {
-
 	b = append(b, '*')
 	return p.g.Marshal(b, t, lvlRepeat)
 }
 
+// Repeat0 represents *G
 func Repeat0(g Grammar) Grammar {
-
 	return &grRepeat0{g, 0}
 }
 
@@ -453,12 +436,10 @@ type grRepeat1 struct {
 }
 
 func (p *grRepeat1) Len() int {
-
 	return p.len
 }
 
 func (p *grRepeat1) Match(src []Token, ctx Context) (n int, err error) {
-
 	n, err = p.g.Match(src, ctx)
 	if err != nil {
 		p.len = 0
@@ -473,13 +454,12 @@ func (p *grRepeat1) Match(src []Token, ctx Context) (n int, err error) {
 }
 
 func (p *grRepeat1) Marshal(b []byte, t Tokener, lvlParent int) []byte {
-
 	b = append(b, '+')
 	return p.g.Marshal(b, t, lvlRepeat)
 }
 
-func Repeat1(g Grammar) *grRepeat1 {
-
+// Repeat1 represents +G
+func Repeat1(g Grammar) Grammar {
 	return &grRepeat1{g, 0}
 }
 
@@ -492,12 +472,10 @@ type grRepeat01 struct {
 }
 
 func (p *grRepeat01) Len() int {
-
 	return p.len
 }
 
 func (p *grRepeat01) Match(src []Token, ctx Context) (n int, err error) {
-
 	n, err = p.g.Match(src, ctx)
 	if err != nil {
 		p.len = 0
@@ -508,13 +486,12 @@ func (p *grRepeat01) Match(src []Token, ctx Context) (n int, err error) {
 }
 
 func (p *grRepeat01) Marshal(b []byte, t Tokener, lvlParent int) []byte {
-
 	b = append(b, '?')
 	return p.g.Marshal(b, t, lvlRepeat)
 }
 
+// Repeat01 represents ?G
 func Repeat01(g Grammar) Grammar {
-
 	return &grRepeat01{g, 0}
 }
 
@@ -529,12 +506,10 @@ type grList struct {
 }
 
 func (p *grList) Len() int {
-
 	return p.len
 }
 
 func (p *grList) Match(src []Token, ctx Context) (n int, err error) {
-
 	n, err = p.a.Match(src, ctx)
 	if err != nil {
 		p.len = 0
@@ -560,7 +535,6 @@ func (p *grList) Match(src []Token, ctx Context) (n int, err error) {
 }
 
 func (p *grList) Marshal(b []byte, t Tokener, lvlParent int) []byte {
-
 	if lvlParent > lvlList {
 		b = append(b, '(')
 	}
@@ -577,25 +551,26 @@ func (p *grList) Marshal(b []byte, t Tokener, lvlParent int) []byte {
 	return b
 }
 
-func List(a, b Grammar) *grList {
-
+// List represents G1 % G2
+func List(a, b Grammar) Grammar {
 	return &grList{a, b, 0, false}
 }
 
-func List0(a, b Grammar) *grList {
-
+// List0 represents G1 %= G2
+func List0(a, b Grammar) Grammar {
 	return &grList{a, b, 0, true}
 }
 
 // -----------------------------------------------------------------------------
 
+// GrVar represents a grammar variable.
 type GrVar struct {
 	Elem Grammar
 	Name string
 }
 
+// Assign assigns this grammar variable.
 func (p *GrVar) Assign(g Grammar) error {
-
 	if p.Elem != nil {
 		return ErrVarAssigned
 	}
@@ -603,60 +578,62 @@ func (p *GrVar) Assign(g Grammar) error {
 	return nil
 }
 
+// Len returns -1.
 func (p *GrVar) Len() int {
-
 	return -1
 }
 
+// Match matches tokens.
 func (p *GrVar) Match(src []Token, ctx Context) (n int, err error) {
-
 	g := p.Elem
 	if g == nil {
 		return 0, ErrVarNotAssigned
 	}
-
 	return g.Match(src, ctx)
 }
 
+// Marshal marshals grammar to be code.
 func (p *GrVar) Marshal(b []byte, t Tokener, lvlParent int) []byte {
-
 	return append(b, p.Name...)
 }
 
+// Var creates a grammar variable.
 func Var(name string) *GrVar {
-
 	return &GrVar{nil, name}
 }
 
 // -----------------------------------------------------------------------------
 
+// GrNamed represents a named grammar.
 type GrNamed struct {
 	g    Grammar
 	name string
 }
 
+// Len returns -1.
 func (p *GrNamed) Len() int {
-
 	return -1
 }
 
+// Match matches tokens.
 func (p *GrNamed) Match(src []Token, ctx Context) (n int, err error) {
-
 	return p.g.Match(src, ctx)
 }
 
+// Marshal marshals grammar to be code.
 func (p *GrNamed) Marshal(b []byte, t Tokener, lvlParent int) []byte {
 
 	return append(b, p.name...)
 }
 
+// Assign assigns this named grammar.
 func (p *GrNamed) Assign(name string, g Grammar) {
 	p.name = name
 	p.g = g
 }
 
+// Named creates a named grammar.
 func Named(name string, g Grammar) *GrNamed {
-
 	return &GrNamed{g, name}
 }
 
@@ -669,12 +646,10 @@ type grAction struct {
 }
 
 func (p *grAction) Len() int {
-
 	return p.g.Len()
 }
 
 func (p *grAction) Match(src []Token, ctx Context) (n int, err error) {
-
 	g := p.g
 	if n, err = g.Match(src, ctx); err != nil {
 		return
@@ -684,12 +659,11 @@ func (p *grAction) Match(src []Token, ctx Context) (n int, err error) {
 }
 
 func (p *grAction) Marshal(b []byte, t Tokener, lvlParent int) []byte {
-
 	return p.g.Marshal(b, t, lvlParent)
 }
 
+// Action represents G/action.
 func Action(g Grammar, act func(tokens []Token, g Grammar)) Grammar {
-
 	return &grAction{g, act}
 }
 
@@ -703,12 +677,10 @@ type grTrans struct {
 }
 
 func (p *grTrans) Len() int {
-
 	return p.g.Len()
 }
 
 func (p *grTrans) Match(src []Token, ctx Context) (n int, err error) {
-
 	trans := p.begin()
 	n, err = p.g.Match(src, ctx)
 	p.end(trans, err)
@@ -716,13 +688,12 @@ func (p *grTrans) Match(src []Token, ctx Context) (n int, err error) {
 }
 
 func (p *grTrans) Marshal(b []byte, t Tokener, lvlParent int) []byte {
-
 	return p.g.Marshal(b, t, lvlParent)
 }
 
+// Transaction represents G/Transaction.
 func Transaction(
 	g Grammar, begin func() interface{}, end func(trans interface{}, err error)) Grammar {
-
 	return &grTrans{g, begin, end}
 }
 
