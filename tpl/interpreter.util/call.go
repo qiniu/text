@@ -20,13 +20,6 @@ var (
 
 // -----------------------------------------------------------------------------
 
-// Context represents the context of an interpreter.
-type Context struct {
-	Src interface{} // []tpl.Token
-	Pos token.Pos
-	End token.Pos
-}
-
 // FileLine represents file name and line number.
 type FileLine struct {
 	File string
@@ -51,6 +44,14 @@ type Engine interface {
 	EvalCode(ip Interface, name string, src interface{}) error
 	FileLine(src interface{}) FileLine
 	Source(src interface{}) []byte
+}
+
+// Context represents the context of an interpreter.
+type Context struct {
+	Src    interface{} // []tpl.Token
+	Pos    token.Pos
+	End    token.Pos
+	Engine Engine
 }
 
 // Call calls a fn.

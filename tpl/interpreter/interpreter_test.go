@@ -12,7 +12,7 @@ import (
 // -----------------------------------------------------------------------------
 
 const codeIf = `
-today = 3
+today = 5
 
 if today == 1 {
 	today = "Mon"
@@ -20,9 +20,16 @@ if today == 1 {
 	today = "Tue"
 } elif today == 3 {
 	today = "Wed"
+} else {
+	today = 0
+	for i = 0; i < 10; i++ {
+		today = today + i
+	}
 }
 
 println(today)
+
+panic("haha")
 `
 
 func TestIf(t *testing.T) {
@@ -32,14 +39,14 @@ func TestIf(t *testing.T) {
 	}
 
 	err = lang.SafeEval(codeIf)
-	if err != nil {
+	if err != nil && err.Error() != "line 19: runtime error: haha" {
 		t.Fatal(err)
 	}
 
 	v, _ := lang.Var("today")
 	fmt.Println(v)
-	if v != "Wed" {
-		t.Fatal("MaxPrime ret:", v)
+	if v != 45 {
+		t.Fatal("ret:", v)
 	}
 }
 

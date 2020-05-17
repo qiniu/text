@@ -44,9 +44,10 @@ func (p *Interpreter) And(e interpreter.Engine) {
 	evalCode(e, p, "term3", bCode)
 }
 
-func (p *Interpreter) If(e interpreter.Engine) {
+func (p *Interpreter) If(ctx *interpreter.Context) {
 
 	var elseCode interface{}
+	var e = ctx.Engine
 
 	stk := p.stk
 	elseArity := stk.popArity()

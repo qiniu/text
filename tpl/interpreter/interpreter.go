@@ -15,6 +15,7 @@ import (
 var (
 	typeIntf    = reflect.TypeOf((*interface{})(nil)).Elem()
 	typeEng     = reflect.TypeOf((*interpreter.Engine)(nil)).Elem()
+	typeCtx     = reflect.TypeOf((*interpreter.Context)(nil))
 	zeroIntfVal = reflect.Zero(typeIntf)
 )
 
@@ -263,6 +264,8 @@ func New(ipt interpreter.Interface, options *Options) (p *Engine, err error) {
 						args[1] = reflect.ValueOf(g.Len())
 					} else {
 						switch targ1 {
+						case typeCtx:
+							args[1] = p.ctxValue(tokens)
 						case typeIntf:
 							if len(tokens) == 0 { // use nil as empty source
 								args[1] = zeroIntfVal
@@ -281,12 +284,7 @@ func New(ipt interpreter.Interface, options *Options) (p *Engine, err error) {
 					}
 				}
 				if n == 3 {
-					ctx := &interpreter.Context{Src: tokens}
-					if len(tokens) > 0 {
-						ctx.Pos = tokens[0].Pos
-						ctx.End = tokens[len(tokens)-1].End()
-					}
-					args[2] = reflect.ValueOf(ctx)
+					args[2] = p.ctxValue(tokens)
 				}
 				ret := reflect.ValueOf(fn).Call(args)
 				if len(ret) > 0 {
@@ -319,6 +317,15 @@ func New(ipt interpreter.Interface, options *Options) (p *Engine, err error) {
 	p.CompileRet = &ret
 	p.Interpreter = ipt
 	return
+}
+
+func (p *Engine) ctxValue(tokens []tpl.Token) reflect.Value {
+	ctx := &interpreter.Context{Src: tokens, Engine: interpreter.Engine(p)}
+	if len(tokens) > 0 {
+		ctx.Pos = tokens[0].Pos
+		ctx.End = tokens[len(tokens)-1].End()
+	}
+	return reflect.ValueOf(ctx)
 }
 
 // Source returns the source text of src.
