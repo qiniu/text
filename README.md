@@ -10,6 +10,8 @@ Qiniu Text Processing Libraries for Go
 
 [![Qiniu Logo](http://open.qiniudn.com/logo.png)](http://www.qiniu.com/)
 
+This project is **DEPRECATED**! It has become [a standard library of Go+](https://pkg.go.dev/github.com/goplus/gop/tpl).
+
 # 使用文档
 
 * [TPL Doc](https://github.com/qiniu/text/tree/main/tpl)
